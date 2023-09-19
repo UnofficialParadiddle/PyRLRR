@@ -1,0 +1,4 @@
+chparse==0.0.3
+mido==1.2.10
+PyYAML==6.0.1
+soundfile==0.12.1
