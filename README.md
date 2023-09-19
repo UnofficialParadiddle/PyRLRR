@@ -19,3 +19,12 @@ Step 7: run ```python PyRLRR X``` but replace `X` with the parent directory, lik
 Step 8: profit
 
 Ik this isn't too user friendly atm, but I will optimize it as time goes on.
+
+CHANGING YAML FILE:
+When you reach Step 7: just add at the end of the command, '-y X' but replace the X with the location of the YAML file.
+
+CHANGING DRUMSET FILE:
+When you reach Step 7: just add at the end of the command, '-d X' but replace the X with the location of the drumset.rlrr file.
+
+CHANGING OUTPUT LOCATION:
+When you reach Step 7: just add at the end of the command, '-o X' but replace the X with the path of where you want to put the songs. Don't worry, PyRLRR will create new directories as needed
