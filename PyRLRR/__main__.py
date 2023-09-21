@@ -1,4 +1,6 @@
 import os
+import sys
+import logging
 import argparse as ap
 from rlrr import RLRR
 from pathlib import Path
@@ -32,9 +34,18 @@ if __name__ == "__main__":
     # Gets all of the songs within the directory given
     subdirectories = [x.path for x in os.scandir(batchDir) if os.path.isdir(x)]
     difficulties = ["Easy", "Medium", "Hard", "Expert"]
+    
+    successful = 0
+    failed = 0
+    
     for directory in subdirectories:
-        for comp in range(0, len(difficulties)):
-            try:
+        baseDir = os.path.basename(directory)
+        print("\033[1;33;40mConverting: \033[0;37;40m" + baseDir)
+        sys.stdout.write("\033[F")
+
+        try:        
+            for comp in range(0, len(difficulties)):
+
                 convertedChart = RLRR(directory)
                 convertedChart.metadata.complexity = comp+1
                 
@@ -56,9 +67,21 @@ if __name__ == "__main__":
                     convertedChart.parse_chart(os.path.join(directory, filePath))
 
                 if not args.outputDir:
-                    convertedChart.output(os.path.join(os.getcwd(), os.path.basename(directory)))
+                    convertedChart.output(os.path.join(os.getcwd(), baseDir))
                 else:
-                    convertedChart.output(os.path.join(args.outputDir, os.path.basename(directory)))
-            except:
-                print("\nSong Conversion Failed, skipping to next song")
-                continue
+                    convertedChart.output(os.path.join(args.outputDir, baseDir))
+        
+            print("\033[1;32;40mSuccess: \033[0;37;40m" + baseDir)
+            successful = successful + 1
+        except EOFError:
+            print("\033[1;31;40mFAILED: \033[0;37;40m" + baseDir)
+            print("\t- EOFError: Unexpected EOF in MIDI file")
+            print("\t- Please rebuild MIDI file and try again")
+            print("\033[1;34;40mContinuing Conversion...\033[0;37;40m")
+            
+            failed = failed + 1
+            continue
+        
+    print("\nConversion Complete")
+    print("\033[1;32;40mSuccessful: \033[0;37;40m" + str(successful))
+    print("\033[1;31;40mFailure: \033[0;37;40m" + str(failed))
