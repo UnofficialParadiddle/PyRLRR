@@ -36,7 +36,7 @@ if __name__ == "__main__":
         for comp in range(0, len(difficulties)):
             try:
                 convertedChart = RLRR(directory)
-                convertedChart.metadata.complexity = comp
+                convertedChart.metadata.complexity = comp+1
                 
                 if args.drumset:
                     convertedChart.options["drumRLRR"] = args.drumset

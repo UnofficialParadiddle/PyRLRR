@@ -181,7 +181,7 @@ class RLRR():
             "events": self.events,
             "bpmEvents": self.bpmEvents
         }
-        rlrr = json.dumps(rlrr_dict)
+        rlrr = json.dumps(rlrr_dict, indent=4)
 
         os.makedirs(outputDir, exist_ok = True)
         
@@ -191,7 +191,7 @@ class RLRR():
 
 
         # TODO: There should be a better way of doing things
-        with open(os.path.join(outputDir, self.metadata.title+"_"+difficulties[self.metadata.complexity-1]+".rlrr"), "w") as outfile:
+        with open(os.path.join(outputDir, os.path.basename(self.metadata.chartDir)+"_"+difficulties[self.metadata.complexity-1]+".rlrr"), "w") as outfile:
             outfile.write(rlrr)
 
         shutil.copyfile(os.path.join(self.metadata.chartDir, self.metadata.coverImagePath), os.path.join(outputDir, self.metadata.coverImagePath))
