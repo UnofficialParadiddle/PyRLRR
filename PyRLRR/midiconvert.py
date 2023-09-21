@@ -67,7 +67,7 @@ class MidiConverter:
         self.drum_set_dict = None
         with open(drum_set_filename) as f:
             self.drum_set_dict = json.load(f)
-            print("Kit Length: " + str(len(self.drum_set_dict["instruments"])))
+            #print("Kit Length: " + str(len(self.drum_set_dict["instruments"])))
             #TODO handle drum layout formats with version 0 and 0.5 here
             # need to go throuh all instruments, see if their midi notes have been changed or set
             # for mallets, need to check the first key index and number of notes?
@@ -79,17 +79,17 @@ class MidiConverter:
         
         self.midi_track_names.clear()
 
-        print('Midi file type: ' + str(mid.type))
+        #print('Midi file type: ' + str(mid.type))
         default_index = 0 if mid.type == 0 else (1 if len(mid.tracks) > 1 else 0)
         track_to_convert = mid.tracks[default_index]
 
         for i, track in enumerate(mid.tracks):
-            print('Track {}: {}'.format(i, track.name))
+            #print('Track {}: {}'.format(i, track.name))
             self.midi_track_names.append(track.name)
             if ("drum" in track.name.lower()): # default to a midi track if it has 'drum' in the name
                 track_to_convert = track
                 default_index = i
-                print("found drum in " + str(track_to_convert) + " " + str(default_index))
+                #print("found drum in " + str(track_to_convert) + " " + str(default_index))
                 
         del mid
         return (track_to_convert, default_index)
@@ -107,7 +107,8 @@ class MidiConverter:
             if self.length < midi_len:
                 self.length = midi_len
         except ValueError:
-            print("Invalid midi file type to get length")
+            pass
+            #print("Invalid midi file type to get length")
 
         tempo = 500000
         #list of tuples in the form of (total_ticks, total_seconds, new_tempo)
@@ -127,7 +128,7 @@ class MidiConverter:
         self.track_to_convert = mid.tracks[self.convert_track_index]
         # print(track_to_convert)
 
-        print("Kit layout again: " + str(self.drum_set_dict["instruments"]))
+        #print("Kit layout again: " + str(self.drum_set_dict["instruments"]))
         # if drum_set_dict is None:
         #     for drum_class in class_to_default_notes:
         #         print(drum_class)
@@ -138,13 +139,13 @@ class MidiConverter:
         for note in note_map:
             for drum in note_map[note]:
                 drum_class = drum["drum"]
-                print("Drum class: " + drum_class)
+                #print("Drum class: " + drum_class)
                 drums = [d for d in kit_instruments if d["class"] == drum_class]
                 if(len(drums) > 0):
                     drum["drum"] = drums[0]["name"]
                 else:
                     drum["drum"] =  drum_class+"Default"
-                    print(drum_class+"Default")
+                    #print(drum_class+"Default")
         # print(toggle_map)
         toggle_map_rev = {}
         for toggle in toggle_map:
@@ -176,7 +177,7 @@ class MidiConverter:
                     if msg.type == "set_tempo":
                         tempo = msg.tempo
                         tempo_events.append((tempo_total_ticks, tempo_total_seconds, msg.tempo))
-                        print('Tempo change: ' + str(tempo2bpm(msg.tempo)) + ' time: ' + str(tempo_total_seconds) + ' ticks: ' + str(tempo_total_ticks))
+                        #print('Tempo change: ' + str(tempo2bpm(msg.tempo)) + ' time: ' + str(tempo_total_seconds) + ' ticks: ' + str(tempo_total_ticks))
                         self.out_dict["bpmEvents"].append({"bpm" : tempo2bpm(msg.tempo), "time" : tempo_total_seconds})
         if len(tempo_events) == 0:
             tempo_events = [(0.0, 0.0, default_tempo)]
@@ -186,7 +187,7 @@ class MidiConverter:
         # print("Tempo Changes: " + str(tempo_events))
         queued_msgs = []
         total_time = 0
-        print('Track len: ' + str(len(self.track_to_convert)))
+        #print('Track len: ' + str(len(self.track_to_convert)))
         for msg in self.track_to_convert:
             if msg.time > 0:
                 for queued_msg in queued_msgs:
@@ -253,9 +254,9 @@ class MidiConverter:
                     if note in toggle_map:
                         active_toggles.remove(note)
         # print(tempo_index)
-        print("Ticks Per Beat " + str(mid.ticks_per_beat) + ", Tempo " + str(tempo) + ", BPM " + '%.2f'%tempo2bpm(tempo))
-        print("Midi File Length " + str(mid.length))
-        print("Our totaled file length " + str(longest_time))
+        #print("Ticks Per Beat " + str(mid.ticks_per_beat) + ", Tempo " + str(tempo) + ", BPM " + '%.2f'%tempo2bpm(tempo))
+        #print("Midi File Length " + str(mid.length))
+        #print("Our totaled file length " + str(longest_time))
         # print(out_dict)
 
     def create_midi_map(self, midi_yaml):
@@ -267,7 +268,7 @@ class MidiConverter:
         for diff in self.difficulty_names:
             note_map = {}
             toggle_map = {}
-            print(midi_yaml[diff.lower()])
+            #print(midi_yaml[diff.lower()])
             diff_map = midi_yaml[diff.lower()]
             if not diff_map or len(diff_map) == 0:
                 continue
@@ -301,7 +302,8 @@ class MidiConverter:
                             note_map[str_note] = []
                         note_map[str_note].append({'drum' : 'BP_%s_C' % drum_name})
                     except ValueError:
-                        print("Not a valid number!")
+                        pass
+                        #print("Not a valid number!")
             else:
                 if note not in note_map:
                     note_map[note] = []
