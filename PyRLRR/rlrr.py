@@ -4,7 +4,7 @@ import shutil
 import configparser
 import yaml
 from time import sleep
-from midiconvert import MidiConverter
+from midiconvert import MidiConverter, Difficulties
 
 
 class RLRR_Metadata():
@@ -21,13 +21,15 @@ class RLRR_Metadata():
         
         self.chartDir = directory
         
-        filePath = "song.ini"
+        self.filePath = None
         for file in os.listdir(directory):
             if file.endswith(".ini") and "song" in os.path.basename(file).lower():
-                filePath = file
+                self.filePath = file
+        if self.filePath == None:
+            return
         
         songINI = configparser.ConfigParser()
-        songINI.read(os.path.join(directory, filePath))
+        songINI.read(os.path.join(directory, self.filePath))
 
         sectName = "Song"
         iniSects = songINI.sections()
@@ -44,10 +46,12 @@ class RLRR():
     def __init__(self, directory):
         self.options = {
             "drumRLRR": os.path.join(os.path.dirname(__file__), "defaultset.rlrr"),
-            "yamlFilePath": os.path.join(os.path.dirname(os.path.abspath(__file__)), "rhythm_game_mapping_gh.yaml")
+            "yamlFilePath": os.path.join(os.path.dirname(os.path.abspath(__file__)), "rhythm_game_mapping_gh.yaml"),
+            "verbose": False,
+            "strict": False,
+            "failFree": False,
+            "tracks": ["drums", "guitar"]
         }
-        self.metadata = RLRR_Metadata
-
         self._instKind = "Drums"
 
         self.songTracks = []
@@ -59,43 +63,34 @@ class RLRR():
 
         self.calibrationOffset = 0.0
         
-        
         self.metadata = RLRR_Metadata(directory)
         self.parse_dir_info()
 
-        # This is used to set the instruments
-        with open(self.options["drumRLRR"], "r") as drumsetRLRR:
-            drumset = json.load(drumsetRLRR)
-            self.instruments = drumset["instruments"]
-    
 
     def parse_midi(self, midiPath):
         midiConvert = MidiConverter()
-        
-        if self.metadata.complexity == 1:
-            midiConvert.difficulty = "Easy"
-        elif self.metadata.complexity == 2:
-            midiConvert.difficulty = "Medium"
-        elif self.metadata.complexity == 3:
-            midiConvert.difficulty = "Hard"
-        else:
-            midiConvert.difficulty = "Expert"
-        
+        midiConvert.difficulty = Difficulties(self.metadata.complexity).name
+
         midiConvert.analyze_drum_set(self.options["drumRLRR"])
                      
         midiConvert.midi_file = midiPath
         with open(self.options["yamlFilePath"]) as yamlOpen:
             yamlFile = yaml.load(yamlOpen, Loader=yaml.FullLoader)
             midiConvert.create_midi_map(yamlFile)
-            (default_track, track_index) = midiConvert.get_default_midi_track()
+            (default_track, track_index) = midiConvert.get_default_midi_track(self.options["tracks"])
+            if track_index == -1:
+                return 1
             midiConvert.convert_track_index = track_index
+            midiConvert.track_to_convert = default_track
         
         midiConvert.analyze_midi_file()
         self.instruments = midiConvert.out_dict["instruments"]
         self.events = midiConvert.out_dict["events"]
         self.bpmEvents = midiConvert.out_dict["bpmEvents"]
-        
-        del midiConvert
+
+        print(midiConvert.midi_track_names)
+
+        return 0
 
     # Parses all of the content within the chart directory into the class instance
     def parse_dir_info(self):
@@ -121,8 +116,6 @@ class RLRR():
 
 
     def output_rlrr(self, outputDir):        
-        difficulties = ["Easy", "Medium", "Hard", "Expert"]
-
         rlrr_dict = {
             "version": self.metadata.VERSION,
             "recordingMetadata": {
@@ -143,10 +136,14 @@ class RLRR():
             "events": self.events,
             "bpmEvents": self.bpmEvents
         }
+
+        with open(self.options["drumRLRR"], "r") as drumsetRLRR:
+            drumset = json.load(drumsetRLRR)
+            self.instruments = drumset["instruments"]
+
         rlrr = json.dumps(rlrr_dict, indent=4)
 
         os.makedirs(outputDir, exist_ok = True)
-        
-        # TODO: There should be a better way of doing things
-        with open(os.path.join(outputDir, os.path.basename(self.metadata.chartDir)+"_"+difficulties[self.metadata.complexity-1]+".rlrr"), "w") as outfile:
+    
+        with open(os.path.join(outputDir, os.path.basename(self.metadata.chartDir)+"_"+Difficulties(self.metadata.complexity).name+".rlrr"), "w") as outfile:
             outfile.write(rlrr)
