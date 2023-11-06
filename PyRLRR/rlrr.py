@@ -36,7 +36,7 @@ class RLRR_Metadata():
         if "song" in iniSects:
             sectName = "song"
         
-        self.length = songINI.getfloat(sectName, "song_length") 
+        self.length = (songINI.getfloat(sectName, "song_length")/1000.0) 
         self.title = songINI.get(sectName, "name")
         self.artist = songINI.get(sectName, "artist")
         self.creator = songINI.get(sectName, "charter") 
