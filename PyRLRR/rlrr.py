@@ -50,7 +50,7 @@ class RLRR():
             "verbose": False,
             "strict": False,
             "failFree": False,
-            "tracks": ["drums", "guitar"]
+            "tracks": ["DRUMS", "GUITAR"]
         }
         self._instKind = "Drums"
 

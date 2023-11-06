@@ -91,11 +91,17 @@ class MidiConverter:
             for i, track in enumerate(mid.tracks):
                 #print('Track {}: {}'.format(i, track.name))
                 self.midi_track_names.append(track.name)
+                print(trackType)
+                print("\n" + trackType.lower())
                 if (trackType.lower() in track.name.lower()): # default to a midi track if it has 'drum' in the name
                     track_to_convert = track
                     default_index = i
+                    break
                     #print("found drum in " + str(track_to_convert) + " " + str(default_index))
-                
+            if track_to_convert != "":
+                break
+
+
         del mid
         return (track_to_convert, default_index)
 
