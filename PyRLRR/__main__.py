@@ -1,7 +1,6 @@
 import os
 import sys
 import logging
-from supports_color import supportsColor 
 import argparse as ap
 from rlrr import RLRR
 from midiconvert import Difficulties
@@ -12,13 +11,6 @@ continueColor = "Continuing Conversion..."
 failedColor = "FAILED: "
 successColor = "Success: "
 warnColor = "WARNING: "
-if supportsColor.stdout:
-    successColor = "\033[1;32mSuccess: \033[0;37m"
-    failedColor = "\033[1;31mFAILED: \033[0;37m"
-    convColor = "\033[1;33mConverting: \033[0;37m"
-    continueColor = "\033[1;34mContinuing Conversion...\033[0;37m"
-    warnColor = "\033[0;35mWARNING: \033[0;37m"
-
 
 parser = ap.ArgumentParser()
 parser.add_argument('-d', '--drumset', action="store", dest="drumset") # set custom drumset.rlrr
@@ -132,9 +124,6 @@ if __name__ == "__main__":
             continue
 
         convertedChart.copy_files(outputDir)
-
-        if disableOverwrite != True and supportsColor.stdout: 
-            sys.stdout.write("\033[F")
         print(successColor + baseDir)
         successful = successful + 1
         
