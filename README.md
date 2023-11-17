@@ -31,7 +31,7 @@ Go ahead and open up your terminal of choice. If you are on a Windows system, us
 Next, we need to set the terminal to the location of the PyRLRR folder. To do this get the path of the PyRLRR folder through the file explorer, and enter `cd path_to_folder` into the terminal
 
 ### Step 3:
-Now with our terminal set up, all we need to do is install everything thats required for the project to work, which is easily done with putting `python -m pip install -r requirements.txt` into the terminal.
+Now with our terminal set up, all we need to do is install everything thats required for the project to work, which is easily done with putting `python -m pip install .` into the terminal. Pip will use the provided 'setup.py' file to read all the data we need.
 
 ## Running PyRLRR
 Before we run the program, we need to get the folder structure setup. You need to have all the song folders you want to convert inside of one folder that the program will read from.
