@@ -3,13 +3,10 @@ import mido
 import json
 import os
 import copy
-from enum import IntEnum
+from enum import IntEnum, StrEnum
+from mido.messages import Message
 
-class Difficulties(IntEnum):
-    Easy = 1,
-    Medium = 2,
-    Hard = 3,
-    Expert = 4
+difficulties = ["Easy", "Medium", "Hard", "Expert"]
 
 class MidiConverter:
     def __init__(self):
@@ -21,10 +18,10 @@ class MidiConverter:
             'events' : []
         }  
 
-        self.difficulty = Difficulties.Easy.name
+        self.difficulty = difficulties[0]
 
         script_dir = os.path.dirname(os.path.realpath(__file__))
-        self.drum_set_file = os.path.join(script_dir,'defaultset.rlrr')
+        self.drum_set_file = os.path.join(script_dir, 'drumsets', 'defaultset.rlrr')
         self.drum_set_dict = None
         self.midi_file = ''
         self.output_rlrr_dir = ''
@@ -36,7 +33,7 @@ class MidiConverter:
         self.length = 0
 
         # MIDI
-        self.midi_track_names = []
+        self.midi_tracks = []
         self.convert_track_index = 0
         self.note_to_drum_maps = [] # in order of difficulty
         self.toggle_to_drum_maps = [] # example: [{111: Snare, 110: HiHat}, {100: Kick}] 
@@ -59,7 +56,7 @@ class MidiConverter:
 
         self.song_name = ''
 
-        self.song_complexity = Difficulties[self.difficulty].value
+        self.song_complexity = 1
         self.artist_name = ''
         self.cover_image_path = ''
         self.author_name = ''
@@ -77,32 +74,31 @@ class MidiConverter:
             # need to go throuh all instruments, see if their midi notes have been changed or set
             # for mallets, need to check the first key index and number of notes?
 
+    def get_tracks(self, midi_file=None):
+        if (midi_file==None):
+            midi_file = self.midi_file
+        mid = MidiFile(midi_file, clip=True)        
+        self.midi_tracks.clear()
+        for i, track in enumerate(mid.tracks):
+            if (isinstance(track[i], Message)):
+                self.midi_tracks.append(track)
+
+
     # Returns a tuple of the default midi track we want to use in the form of
     # (midi track object, track index)
-    def get_default_midi_track(self, trackTypes):
-        mid = MidiFile(self.midi_file, clip=True)
-        
-        self.midi_track_names.clear()
-
+    def get_drum_track(self, trackTypes=[]):
         #print('Midi file type: ' + str(mid.type))
         default_index = -1 # 0 if mid.type == 0 else (1 if len(mid.tracks) > 1 else 0)
         track_to_convert = "" # mid.tracks[default_index]
-        for trackType in trackTypes:
-            for i, track in enumerate(mid.tracks):
-                #print('Track {}: {}'.format(i, track.name))
-                self.midi_track_names.append(track.name)
-                print(trackType)
-                print("\n" + trackType.lower())
-                if (trackType.lower() in track.name.lower()): # default to a midi track if it has 'drum' in the name
-                    track_to_convert = track
-                    default_index = i
-                    break
-                    #print("found drum in " + str(track_to_convert) + " " + str(default_index))
-            if track_to_convert != "":
+        for i, track in enumerate(self.midi_tracks):   
+    
+            isMessage = (isinstance(track[i], Message))
+            hasNameAttr = hasattr(track, 'name')
+            if ((isMessage and (track[i].channel == 10)) or (hasNameAttr and "drum" in track.name.lower())):
+                track_to_convert = track
+                default_index = i
                 break
 
-
-        del mid
         return (track_to_convert, default_index)
 
     def analyze_midi_file(self): # This gets called by convert_to_rlrr()
@@ -129,7 +125,7 @@ class MidiConverter:
         longest_time = 0.0
             
         # note_to_drums_map = pdtracks_notes
-        diff_index = Difficulties[self.difficulty].value-1
+        diff_index = difficulties.index(self.difficulty)
         # fall back to highest difficulty map if our difficulty isn't in the map
         # print(note_to_drum_maps)
         note_map = copy.deepcopy(self.note_to_drum_maps[min(len(self.note_to_drum_maps)-1, diff_index)])
@@ -276,11 +272,11 @@ class MidiConverter:
         This makes lookups easier later on when we analyze the midi file.'''
         self.note_to_drum_maps.clear()
         self.toggle_to_drum_maps.clear()
-        for diff in Difficulties:
+        for diff in difficulties:
             note_map = {}
             toggle_map = {}
             #print(midi_yaml[diff.lower()])
-            diff_map = midi_yaml[diff.name.lower()]
+            diff_map = midi_yaml[diff.lower()]
             if not diff_map or len(diff_map) == 0:
                 continue
             for drum in diff_map:
