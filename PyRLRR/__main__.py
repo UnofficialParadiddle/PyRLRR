@@ -3,7 +3,6 @@ import sys
 import logging
 import argparse as ap
 from rlrr import RLRR
-from midiconvert import Difficulties
 from pathlib import Path
 
 convColor = "Converting: "
@@ -44,6 +43,8 @@ if args.drumset and not os.path.isfile(args.drumset):
     _throwErr("Drumset doesn't exist - " + args.drumset)
 if args.yamlPath and not os.path.isfile(args.yamlPath):
     _throwErr("YAML doesn't exist - " + args.yamlPath)
+
+difficulties = ["Easy", "Medium", "Hard", "Expert"]
 
 if __name__ == "__main__":
     if len(unknown) == 0:
@@ -110,8 +111,8 @@ if __name__ == "__main__":
             outputDir = os.path.join(args.outputDir, baseDir)
 
         res = 0
-        for comp in Difficulties:
-            convertedChart.metadata.complexity = comp.value
+        for diff in difficulties:
+            convertedChart.metadata.difficulty = diff
             res = convertedChart.parse_midi(os.path.join(directory, filePath))
             if res == 1:
                 _throwErr("Couldn't find track(s) within MIDI file")
