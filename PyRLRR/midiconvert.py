@@ -3,7 +3,6 @@ import mido
 import json
 import os
 import copy
-from enum import IntEnum, StrEnum
 from mido.messages import Message
 
 difficulties = ["Easy", "Medium", "Hard", "Expert"]
