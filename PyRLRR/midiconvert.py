@@ -3,6 +3,13 @@ import mido
 import json
 import os
 import copy
+from enum import IntEnum
+
+class Difficulties(IntEnum):
+    Easy = 1,
+    Medium = 2,
+    Hard = 3,
+    Expert = 4
 
 class MidiConverter:
     def __init__(self):
@@ -14,8 +21,7 @@ class MidiConverter:
             'events' : []
         }  
 
-        self.difficulty_names = ['Easy', 'Medium', 'Hard', 'Expert']
-        self.difficulty = self.difficulty_names[0]
+        self.difficulty = Difficulties.Easy.name
 
         script_dir = os.path.dirname(os.path.realpath(__file__))
         self.drum_set_file = os.path.join(script_dir,'defaultset.rlrr')
@@ -53,8 +59,7 @@ class MidiConverter:
 
         self.song_name = ''
 
-        # FIXME: Replace with index of difficulty_names
-        self.song_complexity = 1
+        self.song_complexity = Difficulties[self.difficulty].value
         self.artist_name = ''
         self.cover_image_path = ''
         self.author_name = ''
@@ -74,23 +79,29 @@ class MidiConverter:
 
     # Returns a tuple of the default midi track we want to use in the form of
     # (midi track object, track index)
-    def get_default_midi_track(self):
+    def get_default_midi_track(self, trackTypes):
         mid = MidiFile(self.midi_file, clip=True)
         
         self.midi_track_names.clear()
 
         #print('Midi file type: ' + str(mid.type))
-        default_index = 0 if mid.type == 0 else (1 if len(mid.tracks) > 1 else 0)
-        track_to_convert = mid.tracks[default_index]
+        default_index = -1 # 0 if mid.type == 0 else (1 if len(mid.tracks) > 1 else 0)
+        track_to_convert = "" # mid.tracks[default_index]
+        for trackType in trackTypes:
+            for i, track in enumerate(mid.tracks):
+                #print('Track {}: {}'.format(i, track.name))
+                self.midi_track_names.append(track.name)
+                print(trackType)
+                print("\n" + trackType.lower())
+                if (trackType.lower() in track.name.lower()): # default to a midi track if it has 'drum' in the name
+                    track_to_convert = track
+                    default_index = i
+                    break
+                    #print("found drum in " + str(track_to_convert) + " " + str(default_index))
+            if track_to_convert != "":
+                break
 
-        for i, track in enumerate(mid.tracks):
-            #print('Track {}: {}'.format(i, track.name))
-            self.midi_track_names.append(track.name)
-            if ("drum" in track.name.lower()): # default to a midi track if it has 'drum' in the name
-                track_to_convert = track
-                default_index = i
-                #print("found drum in " + str(track_to_convert) + " " + str(default_index))
-                
+
         del mid
         return (track_to_convert, default_index)
 
@@ -118,7 +129,7 @@ class MidiConverter:
         longest_time = 0.0
             
         # note_to_drums_map = pdtracks_notes
-        diff_index = self.difficulty_names.index(self.difficulty)
+        diff_index = Difficulties[self.difficulty].value-1
         # fall back to highest difficulty map if our difficulty isn't in the map
         # print(note_to_drum_maps)
         note_map = copy.deepcopy(self.note_to_drum_maps[min(len(self.note_to_drum_maps)-1, diff_index)])
@@ -265,11 +276,11 @@ class MidiConverter:
         This makes lookups easier later on when we analyze the midi file.'''
         self.note_to_drum_maps.clear()
         self.toggle_to_drum_maps.clear()
-        for diff in self.difficulty_names:
+        for diff in Difficulties:
             note_map = {}
             toggle_map = {}
             #print(midi_yaml[diff.lower()])
-            diff_map = midi_yaml[diff.lower()]
+            diff_map = midi_yaml[diff.name.lower()]
             if not diff_map or len(diff_map) == 0:
                 continue
             for drum in diff_map:
