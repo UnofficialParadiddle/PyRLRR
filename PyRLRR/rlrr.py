@@ -4,24 +4,28 @@ import shutil
 import configparser
 import yaml
 from time import sleep
-from midiconvert import MidiConverter, Difficulties
+from .midiconvert import MidiConverter
 
 
 class RLRR_Metadata():
     def __init__(self, directory):
         self.VERSION = 0.6
 
-        self.title = ""
+        self.title = "(new)"
         self.description = ""
         self.coverImagePath = ""
         self.artist = ""
+        self.album = ""
         self.creator = ""
         self.length = 0.0
         self.complexity = 0
+        self.difficulty = "Easy"
         
         self.chartDir = directory
         
         self.filePath = None
+        if (os.path.exists(directory) == False):
+            return
         for file in os.listdir(directory):
             if file.endswith(".ini") and "song" in os.path.basename(file).lower():
                 self.filePath = file
@@ -45,17 +49,17 @@ class RLRR_Metadata():
 class RLRR():
     def __init__(self, directory):
         self.options = {
-            "drumRLRR": os.path.join(os.path.dirname(__file__), "defaultset.rlrr"),
-            "yamlFilePath": os.path.join(os.path.dirname(os.path.abspath(__file__)), "rhythm_game_mapping_gh.yaml"),
+            "drumRLRR": os.path.join(os.path.dirname(__file__), "drumsets", "defaultset.rlrr"),
+            "yamlFilePath": os.path.join(os.path.dirname(os.path.abspath(__file__)), "midi_maps", "rhythm_game_mapping_gh.yaml"),
             "verbose": False,
             "strict": False,
             "failFree": False,
-            "tracks": ["DRUMS", "GUITAR"]
+            "tracks": ["DRUMS"]
         }
         self._instKind = "Drums"
 
-        self.songTracks = []
-        self.drumTracks = []
+        self.songTracks = [""] * 5
+        self.drumTracks = [""] * 4
 
         self.instruments = [{}]
         self.events = [{}]
@@ -64,12 +68,13 @@ class RLRR():
         self.calibrationOffset = 0.0
         
         self.metadata = RLRR_Metadata(directory)
-        self.parse_dir_info()
+        if (os.path.exists(directory)):
+            self.parse_dir_info()
 
 
-    def parse_midi(self, midiPath):
+    def parse_midi(self, midiPath, track_index = -1):
         midiConvert = MidiConverter()
-        midiConvert.difficulty = Difficulties(self.metadata.complexity).name
+        midiConvert.difficulty = self.metadata.difficulty
 
         midiConvert.analyze_drum_set(self.options["drumRLRR"])
                      
@@ -77,9 +82,11 @@ class RLRR():
         with open(self.options["yamlFilePath"]) as yamlOpen:
             yamlFile = yaml.load(yamlOpen, Loader=yaml.FullLoader)
             midiConvert.create_midi_map(yamlFile)
-            (default_track, track_index) = midiConvert.get_default_midi_track(self.options["tracks"])
-            if track_index == -1:
-                return 1
+            midiConvert.get_tracks()
+            if (track_index == -1):
+                (default_track, track_index) = midiConvert.get_drum_track(self.options["tracks"])
+                if track_index == -1:
+                    return 1
             midiConvert.convert_track_index = track_index
             midiConvert.track_to_convert = default_track
         
@@ -88,7 +95,7 @@ class RLRR():
         self.events = midiConvert.out_dict["events"]
         self.bpmEvents = midiConvert.out_dict["bpmEvents"]
 
-        print(midiConvert.midi_track_names)
+        # print(midiConvert.midi_track_names)
 
         return 0
 
@@ -108,11 +115,17 @@ class RLRR():
         
 
     def copy_files(self, outputDir):
-        shutil.copyfile(os.path.join(self.metadata.chartDir, self.metadata.coverImagePath), os.path.join(outputDir, self.metadata.coverImagePath))
+        coverImg = os.path.join(self.metadata.chartDir, self.metadata.coverImagePath)
+        if (os.path.isfile(coverImg)):
+            shutil.copyfile(coverImg, os.path.join(outputDir, self.metadata.coverImagePath))
         for songTrack in self.songTracks:
-            shutil.copyfile(os.path.join(self.metadata.chartDir, songTrack), os.path.join(outputDir, songTrack))
+            sT = os.path.join(self.metadata.chartDir, songTrack)
+            if (os.path.isfile(sT)):
+                shutil.copyfile(sT, os.path.join(outputDir, songTrack))
         for drumTrack in self.drumTracks:
-            shutil.copyfile(os.path.join(self.metadata.chartDir, drumTrack), os.path.join(outputDir, drumTrack))
+            dT = os.path.join(self.metadata.chartDir, drumTrack)
+            if (os.path.isfile(dT)):
+                shutil.copyfile(dT, os.path.join(outputDir, drumTrack))
 
 
     def output_rlrr(self, outputDir):        
@@ -145,5 +158,5 @@ class RLRR():
 
         os.makedirs(outputDir, exist_ok = True)
     
-        with open(os.path.join(outputDir, os.path.basename(self.metadata.chartDir)+"_"+Difficulties(self.metadata.complexity).name+".rlrr"), "w") as outfile:
+        with open(os.path.join(outputDir, os.path.basename(self.metadata.chartDir)+"_"+self.metadata.difficulty+".rlrr"), "w") as outfile:
             outfile.write(rlrr)
