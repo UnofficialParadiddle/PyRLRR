@@ -138,6 +138,7 @@ class RLRR():
     def output_rlrr(self, outputDir):        
         rlrr_dict = {
             "version": self.metadata.VERSION,
+            "PyRLRR_version": "6.9"
             "recordingMetadata": {
                 "title": self.metadata.title,
                 "description": self.metadata.description,
