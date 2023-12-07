@@ -8,5 +8,5 @@ setup(
     url="https://github.com/UnofficialParadiddle/PyRLRR",
     packages=["PyRLRR"],
     requires=["mido", "PyYAML"],
-    package_data={"PyRLRR": ["*.yaml", "*.rlrr"]}
+    package_data={"PyRLRR": ["midi_maps/*.yaml", "drumsets/*.rlrr"]}
 )
