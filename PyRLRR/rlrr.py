@@ -65,6 +65,8 @@ class RLRR():
         self.events = [{}]
         self.bpmEvents = []
 
+        self._mc = MidiConverter()
+
         self.calibrationOffset = 0.0
         
         self.metadata = RLRR_Metadata(directory)
@@ -73,7 +75,7 @@ class RLRR():
 
 
     def parse_midi(self, midiPath, track_index = -1):
-        midiConvert = MidiConverter()
+        midiConvert = self._mc
         midiConvert.difficulty = self.metadata.difficulty
 
         midiConvert.analyze_drum_set(self.options["drumRLRR"])
@@ -146,8 +148,8 @@ class RLRR():
                 "complexity": self.metadata.complexity
             },
             "audioFileData": {
-                "songTracks": [os.path.basename(x) for x in self.songTracks],
-                "drumTracks": [os.path.basename(x) for x in self.drumTracks],
+                "songTracks": [os.path.basename(x) for x in self.songTracks if os.path.isfile(os.path.join(self.metadata.chartDir, x))],
+                "drumTracks": [os.path.basename(x) for x in self.drumTracks if os.path.isfile(os.path.join(self.metadata.chartDir, x))],
                 "calibrationOffset": self.calibrationOffset
             },
             "instruments": self.instruments,
@@ -163,5 +165,5 @@ class RLRR():
 
         os.makedirs(outputDir, exist_ok = True)
     
-        with open(os.path.join(outputDir, os.path.basename(self.metadata.chartDir)+"_"+self.metadata.difficulty+".rlrr"), "w") as outfile:
+        with open(os.path.join(outputDir, self.metadata.artist + ' - ' + self.metadata.title +"_"+self.metadata.difficulty+".rlrr"), "w") as outfile:
             outfile.write(rlrr)
