@@ -90,10 +90,9 @@ class MidiConverter:
         default_index = -1 # 0 if mid.type == 0 else (1 if len(mid.tracks) > 1 else 0)
         track_to_convert = "" # mid.tracks[default_index]
         for i, track in enumerate(self.midi_tracks):   
-    
             isMessage = (isinstance(track[i], Message))
             hasNameAttr = hasattr(track, 'name')
-            if ((isMessage and (track[i].channel == 10)) or (hasNameAttr and "drum" in track.name.lower())):
+            if ((hasNameAttr and "drum" in track.name.lower()) or (isMessage and (track[i].channel == 10))):
                 track_to_convert = track
                 default_index = i
                 break
@@ -131,7 +130,7 @@ class MidiConverter:
         toggle_map = copy.deepcopy(self.toggle_to_drum_maps[min(len(self.toggle_to_drum_maps)-1, diff_index)])
 
         # print(note_map)
-        self.track_to_convert = mid.tracks[self.convert_track_index]
+        self.track_to_convert = self.midi_tracks[self.convert_track_index]
         # print(track_to_convert)
 
         #print("Kit layout again: " + str(self.drum_set_dict["instruments"]))
