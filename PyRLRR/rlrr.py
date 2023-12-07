@@ -102,6 +102,8 @@ class RLRR():
     # Parses all of the content within the chart directory into the class instance
     def parse_dir_info(self):
         chartDirFiles = [x for x in os.listdir(self.metadata.chartDir)]
+        dI = 0
+        sI = 0
         
         for file in chartDirFiles:
             base = os.path.basename(file)
@@ -109,9 +111,12 @@ class RLRR():
                 self.metadata.coverImagePath = file
             elif base.endswith('.ogg') or base.endswith('.mp3') or base.endswith('.wav'):
                 if base.lower().startswith("drum"):
-                    self.drumTracks.append(file)
+                    self.drumTracks[dI] = file
+                    dI = dI+1
                 else:
-                    self.songTracks.append(file)
+                    self.songTracks[sI] = file
+                    sI = sI+1
+        
         
 
     def copy_files(self, outputDir):
