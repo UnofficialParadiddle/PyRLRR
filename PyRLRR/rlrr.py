@@ -122,18 +122,23 @@ class RLRR():
 
     def copy_files(self, outputDir):
         chartCoverImgPath = os.path.join(self.metadata.chartDir, self.metadata.coverImagePath)
-        outputCoverImgPath = os.path.join(outputDir, self.metadata.coverImagePath)
-        if (os.path.isfile(outputCoverImgPath) == False or filecmp.cmp(chartCoverImgPath, outputCoverImgPath) == False):
-            shutil.copyfile(chartCoverImgPath, outputCoverImgPath)
+        if (os.path.isfile(chartCoverImgPath) == True):
+            outputCoverImgPath = os.path.join(outputDir, self.metadata.coverImagePath)
+            if (os.path.isfile(outputCoverImgPath) == False or filecmp.cmp(chartCoverImgPath, outputCoverImgPath) == False):
+                shutil.copyfile(chartCoverImgPath, outputCoverImgPath)
         
         for songTrack in self.songTracks:
             chartSongPath = os.path.join(self.metadata.chartDir, songTrack)
+            if (os.path.isfile(chartSongPath) == False):
+                break
             outputSongPath = os.path.join(outputDir, songTrack)
             if (os.path.isfile(outputSongPath) == False or filecmp.cmp(chartSongPath, outputSongPath) == False):
                 shutil.copyfile(chartSongPath, outputSongPath)
         
         for drumTrack in self.drumTracks:
             chartDrumPath = os.path.join(self.metadata.chartDir, drumTrack)
+            if (os.path.isfile(chartDrumPath) == False):
+                break
             outputDrumPath = os.path.join(outputDir, drumTrack)
             if (os.path.isfile(outputDrumPath) == False or filecmp.cmp(chartDrumPath, outputDrumPath) == False):    
                 shutil.copyfile(chartDrumPath, outputDrumPath)
