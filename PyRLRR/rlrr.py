@@ -120,12 +120,12 @@ class RLRR():
                 self.metadata.coverImagePath = file
             elif base.endswith('.ogg') or base.endswith('.mp3') or base.endswith('.wav'):
                 if base.lower().startswith("drum"):
-                    if dI == 3:
+                    if dI == 4:
                         continue
                     self.drumTracks[dI] = file
                     dI = dI+1
                 else:
-                    if sI == 4:
+                    if sI == 5:
                         continue
                     self.songTracks[sI] = file
                     sI = sI+1
