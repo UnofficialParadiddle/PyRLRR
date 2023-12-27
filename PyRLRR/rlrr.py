@@ -34,8 +34,11 @@ class RLRR_Metadata():
             return
         
         songINI = configparser.ConfigParser()
-        songINI.read(os.path.join(directory, self.filePath))
-
+        try:
+            songINI.read(os.path.join(directory, self.filePath))
+        except:
+            return
+        
         sectName = "Song"
         iniSects = songINI.sections()
         if "song" in iniSects:
@@ -114,9 +117,13 @@ class RLRR():
                 self.metadata.coverImagePath = file
             elif base.endswith('.ogg') or base.endswith('.mp3') or base.endswith('.wav'):
                 if base.lower().startswith("drum"):
+                    if dI == 3:
+                        continue
                     self.drumTracks[dI] = file
                     dI = dI+1
                 else:
+                    if sI == 4:
+                        continue
                     self.songTracks[sI] = file
                     sI = sI+1
 

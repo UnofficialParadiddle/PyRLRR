@@ -91,6 +91,8 @@ class MidiConverter:
         track_to_convert = "" # mid.tracks[default_index]
         for i, track in enumerate(self.midi_tracks):   
             isMessage = (isinstance(track[i], Message))
+            if isMessage == True:
+                isMessage = hasattr(track[i], "channel")
             hasNameAttr = hasattr(track, 'name')
             if ((hasNameAttr and "drum" in track.name.lower()) or (isMessage and (track[i].channel == 10))):
                 track_to_convert = track
