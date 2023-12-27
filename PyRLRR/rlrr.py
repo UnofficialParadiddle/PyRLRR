@@ -89,7 +89,10 @@ class RLRR():
             yamlFile = yaml.load(yamlOpen, Loader=yaml.FullLoader)
             midiConvert.create_midi_map(yamlFile)
             midiConvert.get_tracks()
-            if (track_index == -1):
+            default_track = ""
+            if (track_index != -1):
+                default_track = midiConvert.midi_tracks[track_index]
+            elif (track_index == -1):
                 (default_track, track_index) = midiConvert.get_drum_track(self.options["tracks"])
                 if track_index == -1:
                     return 1
@@ -117,12 +120,12 @@ class RLRR():
                 self.metadata.coverImagePath = file
             elif base.endswith('.ogg') or base.endswith('.mp3') or base.endswith('.wav'):
                 if base.lower().startswith("drum"):
-                    if dI == 4:
+                    if dI == 3:
                         continue
                     self.drumTracks[dI] = file
                     dI = dI+1
                 else:
-                    if sI == 5:
+                    if sI == 4:
                         continue
                     self.songTracks[sI] = file
                     sI = sI+1
