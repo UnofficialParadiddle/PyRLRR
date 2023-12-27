@@ -79,8 +79,8 @@ class MidiConverter:
         mid = MidiFile(midi_file, clip=True)        
         self.midi_tracks.clear()
         for i, track in enumerate(mid.tracks):
-            if (isinstance(track[i], Message)):
-                self.midi_tracks.append(track)
+            #if (isinstance(track[i], Message)):
+            self.midi_tracks.append(track)
 
 
     # Returns a tuple of the default midi track we want to use in the form of
